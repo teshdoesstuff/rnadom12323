@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>:></title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0c0b0f;
+  --cream: #f0ebe3;
+  --rose: #ffdfe6;
+  --soft: rgba(240,235,227,0.7);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Inter', sans-serif;
+  color: var(--cream);
+}
+
+/* ─── STAGES ─── */
+#stage {
+  width: 100vw; height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Every scene sits on top of each other, hidden by default */
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+.scene.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ─── GRAIN overlay ─── */
+#grain {
+  position: fixed; inset: 0; z-index: 99;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+
+/* ─── SCENE 0: PLAY BUTTON ─── */
+#scene-play {
+  background: var(--bg);
+  flex-direction: column;
+  gap: 30px;
+}
+
+.play-ring {
+  position: relative;
+  width: 120px; height: 120px;
+  cursor: pointer;
+}
+
+.play-btn {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: rgba(212,96,122,0.12);
+  border: 1.5px solid rgba(212,96,122,0.45);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s, border-color 0.3s;
+  position: relative; z-index: 1;
+  backdrop-filter: blur(6px);
+}
+.play-btn:hover {
+  background: rgba(212,96,122,0.22);
+  border-color: rgba(212,96,122,0.8);
+  transform: scale(1.06);
+}
+.play-btn svg { margin-left: 6px; }
+
+.play-hint {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(240,235,227,0.3);
+  animation: hintBlink 3s ease-in-out infinite;
+}
+@keyframes hintBlink { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+/* ─── SCENE 1: "sorry for the wait" pan ─── */
+#scene-sorry {
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.pan-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  position: absolute;
+  left: 0;
+  will-change: transform;
+}
+
+#sorry-text {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-style: normal;
+  font-weight: 300;
+  color: var(--cream);
+  white-space: nowrap;
+  padding: 0 80px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* ─── SCENE 2: "i love you sooooo" + photo flashes ─── */
+#scene-love {
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Photo flash layer — sits behind text */
+#flash-layer {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 0;
+}
+.flash-img {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.flash-img:nth-child(1)  { background-color: #2a1520; background-image: url('IMG_6711.jpeg')   }
+.flash-img:nth-child(2)  { background-color: #1a2030; background-image: url('IMG_4813.jpeg')   }
+.flash-img:nth-child(3)  { background-color: #201a10; background-image: url('IMG_7485.jpeg')  }
+.flash-img:nth-child(4)  { background-color: #1a2820; background-image: url('IMG_7595.jpeg')   }
+.flash-img:nth-child(5)  { background-color: #28101a; background-image: url('IMG_8006.jpeg') }
+.flash-img:nth-child(6)  { background-color: #101828; background-image: url('Untitled31_20251223144238.jpeg')  }
+.flash-img:nth-child(7)  { background-color: #201820; background-image: url('Untitled32_20251223144547.jpeg')  }
+.flash-img:nth-child(8)  { background-color: #282018; background-image: url('BABC0AEB-900B-4490-90EC-95486E4A8A6B.jpeg')  }
+
+#flash-layer::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(12,11,15,0.25) 0%, rgba(12,11,15,0.7) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+#love-text {
+  font-size: clamp(3.5rem, 9vw, 8rem);
+  font-style: normal;
+  font-weight: 300;
+  color: var(--cream);
+  white-space: nowrap;
+  padding: 0 80px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  position: relative; z-index: 2;
+}
+
+/* ─── SCENE 3: "now for my next trick..." ─── */
+#scene-trick {
+  background: var(--bg);
+  flex-direction: column;
+  gap: 50px;
+}
+
+#trick-text {
+  font-size: clamp(1.8rem, 4.5vw, 4rem);
+  font-style: italic;
+  color: var(--cream);
+  text-align: center;
+  opacity: 0;
+  letter-spacing: -0.01em;
+  font-weight: 300;
+}
+
+.hat-sticker {
+  font-size: clamp(3rem, 8vw, 6rem);
+  opacity: 0;
+  transform: rotate(-12deg) scale(0.7);
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.4s;
+  cursor: pointer;
+  filter: drop-shadow(0 8px 24px rgba(212,96,122,0.4));
+  line-height: 1;
+}
+.hat-sticker.visible {
+  opacity: 1;
+  transform: rotate(-12deg) scale(1);
+}
+.hat-sticker:hover {
+  transform: rotate(-8deg) scale(1.12) !important;
+  filter: drop-shadow(0 12px 32px rgba(212,96,122,0.7));
+}
+
+.trick-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-direction: column;
+}
+
+.hat-prompt {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(240,235,227,0.3);
+  margin-top: 24px;
+  animation: hintBlink 2.5s infinite;
+}
+
+/* Paper that flies out */
+.paper-container {
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  transform: translateX(-2%) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, transform 0.7s cubic-bezier(0.175,0.885,0.32,1.275);
+  width: clamp(300px, 80vw, 500px);
+}
+.paper-container.unfurl {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-180px);
+  pointer-events: all;
+}
+
+.paper {
+  background: #f5efe4;
+  border-radius: 3px;
+  padding: 40px 44px 44px;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  position: relative;
+  transform: rotate(-1.5deg);
+}
+.paper::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--rose), #f0a0b0, var(--rose));
+  border-radius: 3px 3px 0 0;
+}
+.paper::after {
+  content: '';
+  position: absolute;
+  inset: 60px 20px 20px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    rgba(180,160,140,0.2) 31px,
+    rgba(180,160,140,0.2) 32px
+  );
+  pointer-events: none;
+}
+
+.paper-star {
+  text-align: center;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  position: relative; z-index: 1;
+}
+.paper-text {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-style: normal;
+  font-weight: 300;
+  color: #1b1115;
+  text-align: center;
+  line-height: 1.5;
+  position: relative; z-index: 1;
+}
+.paper-text .answer-btns {
+  margin-top: 30px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-yes {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: #ff8fa3;
+  color: #0c0b0f;
+  border: none;
+  padding: 14px 36px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-yes:hover { transform: scale(1.06); box-shadow: 0 6px 24px rgba(212,96,122,0.5); }
+
+#celebration {
+  position: fixed; inset: 0; z-index: 9999;
+  display: none;
+  background: rgba(12,11,15,0.97);
+  align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+#celebration.show { display: flex; }
+.cel-text {
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(2.5rem, 8vw, 7rem);
+  color: var(--rose);
+  text-align: center;
+  animation: fadeUp 0.9s cubic-bezier(0.23,1,0.32,1) forwards;
+}
+.cel-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+  color: rgba(240,235,227,0.5);
+  letter-spacing: 0.1em;
+  animation: fadeUp 0.9s 0.3s both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.confetti-piece {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 2px;
+  animation: cFall linear forwards;
+}
+@keyframes cFall {
+  from { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.cel-close {
+  margin-top: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(240,235,227,0.2);
+  border: 1px solid rgba(240,235,227,0.1);
+  background: none;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.3s;
+  animation: fadeUp 0.9s 0.8s both;
+}
+.cel-close:hover { color: var(--cream); border-color: rgba(240,235,227,0.3); }
+</style>
+</head>
+<body>
+<div id="grain"></div>
+
+<div id="stage">
+
+<div class="scene active" id="scene-play">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:28px;">
+    <div class="play-ring">
+      <button class="play-btn" onclick="startScene1()" aria-label="Play">
+        <svg width="28" height="32" viewBox="0 0 28 32" fill="none">
+          <path d="M2 2L26 16L2 30V2Z" fill="rgba(212,96,122,0.9)"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="scene" id="scene-sorry">
+  <div class="pan-track" id="sorry-track">
+    <div id="sorry-text">sorry for the wait bubby...</div>
+  </div>
+</div>
+
+<div class="scene" id="scene-love">
+  <div id="flash-layer">
+    <div class="flash-img" id="fi1"></div>
+    <div class="flash-img" id="fi2"></div>
+    <div class="flash-img" id="fi3"></div>
+    <div class="flash-img" id="fi4"></div>
+    <div class="flash-img" id="fi5"></div>
+    <div class="flash-img" id="fi6"></div>
+    <div class="flash-img" id="fi7"></div>
+    <div class="flash-img" id="fi8"></div>
+  </div>
+  <div class="pan-track" id="love-track">
+    <div id="love-text">i love you so</div>
+  </div>
+</div>
+
+<div class="scene" id="scene-trick">
+  <div class="trick-row">
+    <div id="trick-text"></div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <div class="hat-sticker" id="trick-hat" onclick="startScene4()">🎩</div>
+    </div>
+    <div class="paper-container" id="paper">
+      <div class="paper">
+        <div class="paper-star"></div>
+        <div class="paper-text">
+          can i magically take you to prom?
+          <div class="answer-btns">
+            <button class="btn-yes" onclick="sayYes()">yes (in spirit) >:3</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="celebration">
+  <div class="cel-text">:3</div>
+</div>
+
+<script>
+function showScene(id) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startScene1() {
+  showScene('scene-sorry');
+
+  const track = document.getElementById('sorry-track');
+  const text  = document.getElementById('sorry-text');
+
+  track.style.transition = 'none';
+  track.style.transform  = 'translateX(100vw)';
+  void track.offsetWidth;
+
+  const textW = text.scrollWidth;
+  const vw    = window.innerWidth;
+
+  setTimeout(() => {
+    track.style.transition = 'transform 2.8s cubic-bezier(0.16,1,0.3,1)';
+    track.style.transform  = `translateX(${(vw - textW) / 2}px)`;
+  }, 80);
+
+  setTimeout(() => {
+    track.style.transition = 'transform 2.5s cubic-bezier(0.55,0,1,0.45)';
+    track.style.transform  = `translateX(-${textW + 80}px)`;
+  }, 3200);
+
+  setTimeout(() => {
+    startScene2();
+  }, 6200);
+}
+
+function startScene2() {
+  showScene('scene-love');
+
+  const soCount = 38;
+  const loveEl  = document.getElementById('love-text');
+  loveEl.textContent = 'i love you s' + 'o'.repeat(soCount) + ' much';
+
+  const track = document.getElementById('love-track');
+  const vw    = window.innerWidth;
+
+  track.style.transition = 'none';
+  track.style.transform  = `translateX(${vw + 40}px)`;
+  void track.offsetWidth;
+
+  const panDuration = 38000;
+
+  setTimeout(() => {
+    const textW = loveEl.scrollWidth;
+    track.style.transition = `transform ${panDuration}ms linear`;
+    track.style.transform  = `translateX(-${textW + 80}px)`;
+  }, 100);
+
+  const imgs = document.querySelectorAll('.flash-img');
+  const FLASH_DURATION = 4400;
+  const FADE_TIME      = 700;
+
+  let currentFlash = -1;
+
+  function showFlash(index) {
+    if (currentFlash >= 0) {
+      imgs[currentFlash].style.transition = `opacity ${FADE_TIME}ms ease`;
+      imgs[currentFlash].style.opacity = '0';
+    }
+    currentFlash = index;
+    imgs[index].style.transition = `opacity ${FADE_TIME}ms ease`;
+    imgs[index].style.opacity = '0.55';
+  }
+
+  setTimeout(() => showFlash(0), 800);
+  for (let i = 1; i < 8; i++) {
+    setTimeout(() => showFlash(i), 800 + i * FLASH_DURATION);
+  }
+  setTimeout(() => {
+    if (currentFlash >= 0) {
+      imgs[currentFlash].style.transition = `opacity 1.2s ease`;
+      imgs[currentFlash].style.opacity = '0';
+    }
+  }, 800 + 8 * FLASH_DURATION);
+
+  setTimeout(() => {
+    startScene3();
+  }, panDuration + 1800);
+}
+
+function startScene3() {
+  showScene('scene-trick');
+
+  const trickText = document.getElementById('trick-text');
+  const hat       = document.getElementById('trick-hat');
+
+  const fullText  = 'now for my next trick.....';
+  trickText.style.opacity = '0';
+  trickText.style.transition = '';
+  trickText.textContent = '';
+
+  let i = 0;
+  function typeChar() {
+    if (i < fullText.length) {
+      trickText.textContent += fullText[i];
+      trickText.style.opacity = '1';
+      i++;
+      const delay = fullText[i - 1] === '.' ? 200 : 80;
+      setTimeout(typeChar, delay);
+    } else {
+      setTimeout(() => {
+        hat.classList.add('visible');
+      }, 400);
+    }
+  }
+
+  setTimeout(typeChar, 600);
+}
+
+function startScene4() {
+  pullPaper();
+}
+
+let paperOut = false;
+function pullPaper() {
+  if (paperOut) return;
+  paperOut = true;
+
+  const paper = document.getElementById('paper');
+  paper.classList.add('unfurl');
+}
+
+function sayYes() {
+  document.getElementById('celebration').classList.add('show');
+  for (let i = 0; i < 140; i++) {
+    setTimeout(spawnConfetti, Math.random() * 2400);
+  }
+}
+function spawnConfetti() {
+  const el = document.createElement('div');
+  el.className = 'confetti-piece';
+  const colors = ['#d4607a','#f5d0da','#c9a84c','#f0ebe3','#ffffff','#ff8fa3','#ffd700'];
+  const size = Math.random() * 10 + 5;
+  el.style.cssText = `
+    left:${Math.random()*100}vw; top:-20px;
+    width:${size}px; height:${size * (Math.random()>0.5?1:0.4)}px;
+    background:${colors[Math.floor(Math.random()*colors.length)]};
+    border-radius:${Math.random()>0.5?'50%':'2px'};
+    animation-duration:${Math.random()*2.5+2}s;
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+</script>
+</body>
+</html>
